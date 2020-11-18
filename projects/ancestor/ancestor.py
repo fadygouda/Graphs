@@ -1,36 +1,38 @@
-from utils import Queue
-from graph import Graph
+from collections import deque, defaultdict
 
 def earliest_ancestor(ancestors, starting_node):
-    graph = Graph()
+    pass 
+    #child pair with no parent
+    graph = create_graph(ancestors)
+    stack = deque()
+    stack.append((starting_node, 0)) # distance from node
+    visited = set()
+    earliestAncestor = (starting_node, 0)
 
-    for relationship in ancestors:
-        parent = relationship[0]
-        child = relationship[1]
-        graph.add_vertex(child)
-        graph.add_vertex(parent)
-        graph.add_edge(child,parent)
+    while len(stack) > 0:
+        current = stack.pop()
+        current_node, distance = current[0], current[1]
+        visited.add(current)
 
-    queue = Queue()
-    queue.enqueue([starting_node])
-    longest_path = 1
-    earliest_ancestor = -1
+        if current_node not in graph:
+            if distance > earliestAncestor[1]:
+                earliestAncestor = current
+            elif distance == earliestAncestor[1] and current_node < earliestAncestor[0]:
+                earliestAncestor = current
+        else:
+            for ancestor in graph[current_node]:
+                if ancestor not in visited:
+                    stack.append((ancestor, distance + 1))
 
-    while queue.size() > 0:
-        current_path = queue.dequeue()
-        current_node = current_path[-1]
-        
-        if len(current_path) >= longest_path and current_node < earliest_ancestor:
-            earliest_ancestor = current_node
-            longest_path = len(current_path)
+    return earliestAncestor[0] if earliestAncestor[0] != starting_node else -1
 
-        if len(current_path) > longest_path:    
-            longest_path = len(current_path)
-            earliest_ancestor = current_node
-        parents = graph.get_neighbors(current_node)
-        for parent in parents:
-            new_path = current_path.copy()
-            new_path.append(parent)
-            queue.enqueue(new_path)
-    return earliest_ancestor
 
+def create_graph(edges):
+    # every added dict should a deafult value set()
+    graph = defaultdict(set)
+
+    for edge in edges:
+        ancestor, child = edge[0], edge[1]
+        graph[child].add(ancestor)
+
+    return graph 

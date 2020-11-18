@@ -41,8 +41,7 @@ class Graph:
         while queue.size() > 0:
             currNode = queue.dequeue()
             if currNode not in visited:
-                visited.add(currNode) 
-                print()
+                visited.add(currNode)
                 print(currNode)
                 for neighbor in self.get_neighbors(currNode):
                     queue.enqueue(neighbor)
