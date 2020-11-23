@@ -1,3 +1,5 @@
+import math, random
+from collections import deque
 class User:
     def __init__(self, name):
         self.name = name
@@ -45,10 +47,26 @@ class SocialGraph:
         # !!!! IMPLEMENT ME
 
         # Add users
+        for i in range(num_users):
+            self.add_user(f"User {i}")
 
         # Create friendships
+        # generate all the possible friendships and put them in a list
+        possible_friendships = []
+        for user_id in self.users:
+            for friend_id in range(user_id + 1, self.last_id + 1):
+                possible_friendships.append((user_id, friend_id))
+        # shuffle that list
+        random.shuffle(possible_friendships)
+
+        # create friendships using add_friendshipfrom the first N elements in that list
+        for i in range(math.floor(num_users * avg_friendships / 2)):
+            friendship = possible_friendships[i]
+            self.add_friendship(friendship[0], friendship[1])
+
 
     def get_all_social_paths(self, user_id):
+
         """
         Takes a user's user_id as an argument
 
@@ -59,8 +77,51 @@ class SocialGraph:
         """
         visited = {}  # Note that this is a dictionary, not a set
         # !!!! IMPLEMENT ME
+        queue = deque()
+        queue.append([user_id])
+        while queue:
+            curr_path = queue.popleft()
+            curr_node = curr_path[-1]
+            visited[curr_node] = list(curr_path)
+            for friend in self.friendships[curr_node]:
+                if friend not in visited:
+                    new_path = list(curr_path)
+                    new_path.append(friend)
+                    queue.append(new_path)
         return visited
 
+    def add_friendship_linear(self, user_id, friend_id):
+        # check if you are adding friendship to yourself
+        if user_id == friend_id:
+            return False
+        # check if friend_id and user_id are not alrady friends with each other
+        elif friend_id in self.friendships[user_id] or user_id in self.friendships[friend_id]:
+            return False
+        else:
+            self.friendships[user_id].add(friend_id)
+            self.friendships[friend_id].add(user_id)
+            return True
+
+    def populate_graph_linear(self, num_users, avg_friendships):
+        self.last_id = 0
+        self.users = {}
+        self.friendships = {}
+
+        #Add users into the graph
+        for i in range(num_users):
+            self.add_user(f"User {i}")
+        # Create random friendships until we have hit target number of friendships
+        target_friendships = num_users * avg_friendships 
+        total_friendships = 0
+        collisions = 0
+        while total_friendships < target_friendships:
+            user_id = random.randint(1, self.last_id)
+            friend_id = random.randint(1, self.last_id)
+            if self.add_friendship_linear(user_id, friend_id):
+                total_friendships += 2
+            else:
+                collisions += 1
+            
 
 if __name__ == '__main__':
     sg = SocialGraph()
