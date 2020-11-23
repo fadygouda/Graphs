@@ -1,9 +1,23 @@
 from room import Room
 from player import Player
 from world import World
-
 import random
 from ast import literal_eval
+from collections import deque
+
+class Stack():
+    def __init__(self):
+        self.stack = []
+    def push(self, value):
+        self.stack.append(value)
+    def pop(self):
+        if self.size() > 0:
+            return self.stack.pop()
+        else:
+            return None
+    def size(self):
+        return len(self.stack)
+
 
 # Load world
 world = World()
@@ -17,7 +31,7 @@ world = World()
 map_file = "maps/main_maze.txt"
 
 # Loads the map into a dictionary
-room_graph=literal_eval(open(map_file, "r").read())
+room_graph = literal_eval(open(map_file, "r").read())
 world.load_graph(room_graph)
 
 # Print an ASCII map
@@ -28,7 +42,44 @@ player = Player(world.starting_room)
 # Fill this out with directions to walk
 # traversal_path = ['n', 'n']
 traversal_path = []
+def travelers_path(direction):
+    # save our route back to unvisited exits
+    if direction == 'n':
+        return 's'
+    elif direction == 's':
+        return 'n'
+    elif direction == 'e':
+        return 'w'
+    elif direction == 'w':
+        return 'e'
 
+
+paths = Stack()
+visited = set()
+# comparing visited to len of rooms to ensure a complete traversal
+while len(visited) < len(world.rooms):
+
+    exits = player.current_room.get_exits()
+    print('Room:', player.current_room)
+    print('exits are', exits)
+    path = []
+    for exit in exits:
+        if exit is not None and player.current_room.get_room_in_direction(exit) not in visited:
+            # if exit exists and we haven't visited
+            path.append(exit)
+            print(path, 'unvisited')
+    visited.add(player.current_room)
+    if len(path) > 0:
+        move = random.randint(0, len(path) - 1)  # pick index of move (1 of up to 4)
+        paths.push(path[move])
+        player.travel(path[move])
+        traversal_path.append(path[move])
+        print('more rooms to explore')
+    else:
+        end = paths.pop()
+        player.travel(travelers_path(end))
+        traversal_path.append(travelers_path(end))
+        print('this is the end of this path')
 
 
 # TRAVERSAL TEST

@@ -82,15 +82,46 @@ class SocialGraph:
         while queue:
             curr_path = queue.popleft()
             curr_node = curr_path[-1]
-            if curr_node in visited:
-                continue
             visited[curr_node] = list(curr_path)
             for friend in self.friendships[curr_node]:
-                new_path = list(curr_path)
-                new_path.append(friend)
-                queue.append(new_path)
+                if friend not in visited:
+                    new_path = list(curr_path)
+                    new_path.append(friend)
+                    queue.append(new_path)
         return visited
 
+    def add_friendship_linear(self, user_id, friend_id):
+        # check if you are adding friendship to yourself
+        if user_id == friend_id:
+            return False
+        # check if friend_id and user_id are not alrady friends with each other
+        elif friend_id in self.friendships[user_id] or user_id in self.friendships[friend_id]:
+            return False
+        else:
+            self.friendships[user_id].add(friend_id)
+            self.friendships[friend_id].add(user_id)
+            return True
+
+    def populate_graph_linear(self, num_users, avg_friendships):
+        self.last_id = 0
+        self.users = {}
+        self.friendships = {}
+
+        #Add users into the graph
+        for i in range(num_users):
+            self.add_user(f"User {i}")
+        # Create random friendships until we have hit target number of friendships
+        target_friendships = num_users * avg_friendships 
+        total_friendships = 0
+        collisions = 0
+        while total_friendships < target_friendships:
+            user_id = random.randint(1, self.last_id)
+            friend_id = random.randint(1, self.last_id)
+            if self.add_friendship_linear(user_id, friend_id):
+                total_friendships += 2
+            else:
+                collisions += 1
+            
 
 if __name__ == '__main__':
     sg = SocialGraph()
